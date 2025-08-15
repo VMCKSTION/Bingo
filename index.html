@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bingo Humano (Digital)</title>
+  <meta name="description" content="Bingo Humano digital para clase: personalizable, sin impresión, listo para GitHub Pages." />
+  <style>
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --panel:#111827; /* gray-900 */
+      --muted:#94a3b8; /* slate-400 */
+      --text:#e5e7eb; /* gray-200 */
+      --accent:#22d3ee; /* cyan-400 */
+      --accent-2:#a78bfa; /* violet-400 */
+      --ok:#34d399; /* emerald-400 */
+      --warn:#fbbf24; /* amber-400 */
+      --danger:#f87171; /* red-400 */
+      --shadow: 0 10px 25px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 90% -100px, rgba(167,139,250,.15), transparent 60%),
+                  radial-gradient(900px 600px at -20% -100px, rgba(34,211,238,.12), transparent 50%),
+                  var(--bg);
+      color:var(--text);
+    }
+    header{
+      position:sticky; top:0; z-index:20; backdrop-filter: blur(8px);
+      background: linear-gradient(180deg, rgba(15,23,42,.85), rgba(15,23,42,.35));
+      border-bottom:1px solid rgba(148,163,184,.2);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:16px;}
+    .title{display:flex; gap:14px; align-items:center}
+    .title h1{font-size: clamp(20px, 3.5vw, 32px); margin:0; letter-spacing:.3px}
+    .chip{font-size:12px; padding:4px 8px; border-radius:999px; border:1px solid rgba(148,163,184,.25); color:var(--muted)}
+
+    main{display:grid; grid-template-columns: 360px 1fr; gap:20px; padding:20px; max-width:1100px; margin:0 auto}
+    @media (max-width: 960px){ main{grid-template-columns: 1fr} }
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01)); border:1px solid rgba(148,163,184,.18); border-radius:18px; box-shadow:var(--shadow);}
+    .card .hd{padding:18px 18px 0 18px; display:flex; align-items:center; justify-content:space-between}
+    .card .bd{padding:18px}
+
+    .controls{display:grid; gap:12px}
+    label{font-size:12px; color:var(--muted)}
+    input[type="text"], textarea, select{
+      width:100%; padding:10px 12px; border-radius:12px; border:1px solid rgba(148,163,184,.25); background:#0b1220; color:var(--text);
+    }
+    textarea{min-height:160px; resize:vertical}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    .btn{
+      appearance:none; border:none; border-radius:12px; padding:10px 14px; color:#0b1220; background:var(--accent); font-weight:600; cursor:pointer;
+      transition: transform .04s ease, box-shadow .2s ease; box-shadow: 0 8px 20px rgba(34,211,238,.35);
+    }
+    .btn:hover{transform: translateY(-1px)}
+    .btn.secondary{background:transparent; color:var(--text); border:1px solid rgba(148,163,184,.25); box-shadow:none}
+    .btn.warn{background:var(--warn); box-shadow: 0 8px 20px rgba(251,191,36,.35)}
+    .btn.ok{background:var(--ok); box-shadow: 0 8px 20px rgba(52,211,153,.35)}
+    .btn.ghost{background:transparent; color:var(--muted)}
+
+    .grid-outer{display:flex; flex-direction:column; gap:14px}
+    .grid{--n:5; display:grid; grid-template-columns: repeat(var(--n), 1fr); gap:8px}
+    .cell{
+      user-select:none; border-radius:16px; border:1px solid rgba(148,163,184,.25); padding:10px; min-height:86px; display:flex; align-items:center; justify-content:center; text-align:center; line-height:1.2; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01)); cursor:pointer; position:relative; overflow:hidden
+    }
+    .cell small{opacity:.75}
+    .cell .badge{position:absolute; top:8px; right:8px; font-size:11px; color:var(--muted)}
+    .cell.marked{
+      background: radial-gradient(220px 120px at 50% -40px, rgba(167,139,250,.25), transparent 60%),
+                  radial-gradient(200px 120px at -40px 100%, rgba(34,211,238,.25), transparent 60%),
+                  rgba(167,139,250,.12);
+      border-color: rgba(167,139,250,.6);
+    }
+    .cell.free{border-style:dashed; opacity:.95}
+
+    .toolbar{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+    .pill{padding:6px 10px; border-radius:999px; border:1px solid rgba(148,163,184,.25); color:var(--muted); font-size:12px}
+
+    .notice{padding:10px 12px; border-radius:12px; background:rgba(34,211,238,.08); border:1px solid rgba(34,211,238,.25); color:#a5f3fc; font-size:13px}
+    .success{background:rgba(52,211,153,.08); border-color:rgba(52,211,153,.35); color:#bbf7d0}
+
+    .footer{opacity:.6; text-align:center; padding:20px}
+    .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="title">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 7h18M3 12h18M3 17h18" stroke="url(#g)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="g" x1="0" y1="0" x2="24" y2="24"><stop stop-color="#22d3ee"/><stop offset="1" stop-color="#a78bfa"/></linearGradient></defs></svg>
+        <h1>Bingo Humano</h1>
+        <span class="chip">Digital • Sin impresión</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card" aria-labelledby="config">
+      <div class="hd"><h2 id="config" style="margin:0">Configuración</h2></div>
+      <div class="bd">
+        <div class="controls">
+          <div class="row">
+            <div>
+              <label for="teacherLink">Enlace para compartir (docente)</label>
+              <div class="toolbar">
+                <input id="teacherLink" type="text" readonly aria-describedby="shareHelp" />
+                <button id="copyShare" class="btn secondary" type="button">Copiar</button>
+              </div>
+              <div id="shareHelp" class="notice" style="margin-top:8px">Personaliza la lista y opciones, luego usa <b>Copiar</b> para compartir con el grupo (GitHub Pages funciona perfecto).</div>
+            </div>
+            <div>
+              <label for="playerName">Tu nombre (para generar tablero único)</label>
+              <input id="playerName" type="text" placeholder="Ej. Ana Martínez" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="size">Tamaño del tablero</label>
+              <select id="size">
+                <option value="5">5 × 5 (recomendado)</option>
+                <option value="4">4 × 4</option>
+              </select>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; margin-top:18px">
+              <input type="checkbox" id="free" />
+              <label for="free" style="margin:0">Casilla libre al centro</label>
+            </div>
+          </div>
+
+          <div>
+            <label for="list">Frases (una por línea)</label>
+            <textarea id="list" spellcheck="false"></textarea>
+          </div>
+
+          <div class="toolbar" style="justify-content:space-between">
+            <div style="display:flex; gap:8px; align-items:center">
+              <button id="gen" class="btn" type="button">Generar tablero</button>
+              <button id="resetMarks" class="btn secondary" type="button">Limpiar marcas</button>
+              <button id="shuffle" class="btn warn" type="button" title="Reordena usando una nueva semilla aleatoria">Mezclar</button>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center">
+              <button id="saveShare" class="btn ok" type="button">Actualizar enlace</button>
+              <button id="restoreDefaults" class="btn ghost" type="button">Restablecer frases</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card" aria-labelledby="tablero">
+      <div class="hd"><h2 id="tablero" style="margin:0">Tu tablero</h2></div>
+      <div class="bd">
+        <div class="grid-outer">
+          <div class="toolbar">
+            <span class="pill" id="status">Sin líneas.</span>
+            <span class="pill" id="seedInfo" title="Semilla de aleatoriedad">Seed: —</span>
+            <span class="pill" id="boardSize">—</span>
+          </div>
+          <div class="grid" id="grid" role="grid" aria-label="Bingo Humano"></div>
+          <div id="bingoMessage" class="notice success" style="display:none">¡BINGO! Has completado <b id="lineCount">1</b> línea<span id="plural"></span>. 🥳</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>Consejo: Cada estudiante escribe su nombre para un tablero único. El docente comparte el enlace con las frases y opciones ya configuradas.</small>
+  </footer>
+
+  <script>
+  // ————— Utilidades de semillas determinísticas —————
+  function xfnv1a(str){
+    // Hash de string a 32-bit (determinístico)
+    let h = 2166136261 >>> 0;
+    for (let i=0;i<str.length;i++){
+      h ^= str.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return () => h >>> 0;
+  }
+  function mulberry32(a){
+    return function(){
+      let t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+  }
+  function seededShuffle(array, rand){
+    const a = array.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(rand()* (i+1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // ————— Estado y elementos —————
+  const el = {
+    playerName: document.getElementById('playerName'),
+    size: document.getElementById('size'),
+    free: document.getElementById('free'),
+    list: document.getElementById('list'),
+    grid: document.getElementById('grid'),
+    status: document.getElementById('status'),
+    seedInfo: document.getElementById('seedInfo'),
+    boardSize: document.getElementById('boardSize'),
+    bingoMessage: document.getElementById('bingoMessage'),
+    lineCount: document.getElementById('lineCount'),
+    plural: document.getElementById('plural'),
+    teacherLink: document.getElementById('teacherLink'),
+    copyShare: document.getElementById('copyShare'),
+    saveShare: document.getElementById('saveShare'),
+    gen: document.getElementById('gen'),
+    shuffle: document.getElementById('shuffle'),
+    resetMarks: document.getElementById('resetMarks'),
+    restoreDefaults: document.getElementById('restoreDefaults')
+  };
+
+  const DEFAULTS = [
+    "1- Ha viajado a otro país",
+    "2- Sabe tocar un instrumento",
+    "3- Prefiere café sobre té",
+    "4- Tiene mascotas",
+    "5- Le gusta madrugar",
+    "6- Fan de películas de Marvel",
+    "7- Habla más de un idioma",
+    "8- Ha practicado un deporte de equipo",
+    "9- Le gusta cocinar",
+    "10- Es gamer",
+    "11- Ha asistido a un concierto",
+    "12- Le gusta leer",
+    "13- Ha hecho voluntariado",
+    "14- Le gusta el cine",
+    "15- Practica ejercicio semanal",
+    "16- Le gusta la playa",
+    "17- Vive lejos del campus",
+    "18- Ha participado en un club estudiantil",
+    "19- Prefiere trabajar en equipo",
+    "20- Aprende mejor con videos",
+    "21- Ha usado GitHub",
+    "22- Le encantan las matemáticas",
+    "23- Usa transporte público al campus",
+    "24- Tiene hermanos",
+    "25- Es fan de Star Wars"
+  ];
+
+  // Decodificación/encoding seguro para URL con UTF-8
+  function encodeUTF8Base64(str){
+    return btoa(unescape(encodeURIComponent(str)));
+  }
+  function decodeUTF8Base64(b64){
+    try { return decodeURIComponent(escape(atob(b64))); } catch(e){ return ''; }
+  }
+
+  function getSettingsFromURL(){
+    const p = new URLSearchParams(location.search);
+    const size = parseInt(p.get('s')||'5',10);
+    const free = (p.get('free')||'0') === '1';
+    const listB64 = p.get('list');
+    const list = listB64 ? decodeUTF8Base64(listB64).split('\n').map(s=>s.trim()).filter(Boolean) : DEFAULTS.slice();
+    return { size: (size===4?4:5), free, list };
+  }
+  function setSettingsToURL({size, free, list}){
+    const p = new URLSearchParams();
+    p.set('s', String(size));
+    p.set('free', free? '1':'0');
+    p.set('list', encodeUTF8Base64(list.join('\n')));
+    const share = location.origin + location.pathname + '?' + p.toString();
+    el.teacherLink.value = share;
+  }
+
+  function signature({size, free, list}){
+    return `${size}|${free?'1':'0'}|${list.join('\n')}`;
+  }
+
+  function currentSeed(){
+    const name = (el.playerName.value||'').trim();
+    if(!name) return Math.floor(Math.random()*1e9);
+    const h = xfnv1a(name)();
+    return h;
+  }
+
+  function buildBoard(){
+    const settings = getSettingsFromURL();
+    const n = settings.size; el.grid.style.setProperty('--n', n);
+    el.boardSize.textContent = `${n} × ${n}`;
+
+    // Determinar semilla
+    const s = currentSeed();
+    const rand = mulberry32(s);
+    el.seedInfo.textContent = `Seed: ${s}`;
+
+    // Preparar lista
+    const needed = n*n;
+    let pool = settings.list.slice();
+    if(settings.free && n%2===1) {
+      // una casilla será LIBRE
+      if(pool.length < needed-1){
+        // duplicar elementos si faltan
+        while(pool.length < needed-1){ pool = pool.concat(settings.list); }
+      }
+    } else if(pool.length < needed){
+      while(pool.length < needed){ pool = pool.concat(settings.list); }
+    }
+    const shuffled = seededShuffle(pool, rand);
+
+    // Construir celdas
+    const marksKey = `bingoHumano::${s}::${signature(settings)}`;
+    const saved = JSON.parse(localStorage.getItem(marksKey)||'{}');
+
+    el.grid.innerHTML = '';
+    let k = 0;
+    for(let r=0;r<n;r++){
+      for(let c=0;c<n;c++){
+        const cell = document.createElement('button');
+        cell.className = 'cell';
+        cell.setAttribute('role','gridcell');
+        cell.setAttribute('aria-pressed','false');
+        cell.dataset.r = r; cell.dataset.c = c;
+
+        if(settings.free && n%2===1 && r === Math.floor(n/2) && c === Math.floor(n/2)){
+          cell.classList.add('free');
+          cell.innerHTML = '<small>Casilla</small><br><b>LIBRE</b>';
+          cell.dataset.free = '1';
+        } else {
+          cell.textContent = shuffled[k++] || '—';
+        }
+
+        const id = `${r}-${c}`;
+        if(saved[id]){
+          cell.classList.add('marked');
+          cell.setAttribute('aria-pressed','true');
+        }
+        cell.addEventListener('click', () => toggleMark(cell, marksKey));
+        el.grid.appendChild(cell);
+      }
+    }
+
+    updateStatus();
+  }
+
+  function toggleMark(cell, storageKey){
+    const id = `${cell.dataset.r}-${cell.dataset.c}`;
+    const saved = JSON.parse(localStorage.getItem(storageKey)||'{}');
+    const nowMarked = !cell.classList.contains('marked');
+    cell.classList.toggle('marked');
+    cell.setAttribute('aria-pressed', nowMarked ? 'true' : 'false');
+    if(nowMarked){ saved[id] = 1; } else { delete saved[id]; }
+    localStorage.setItem(storageKey, JSON.stringify(saved));
+    updateStatus();
+  }
+
+  function updateStatus(){
+    const n = parseInt(getComputedStyle(el.grid).getPropertyValue('--n'),10);
+    const cells = Array.from(el.grid.children);
+    const grid = [];
+    for(let r=0;r<n;r++){
+      grid[r] = [];
+      for(let c=0;c<n;c++){
+        const idx = r*n + c;
+        const node = cells[idx];
+        const marked = node.classList.contains('marked') || node.dataset.free==='1';
+        grid[r][c] = marked ? 1 : 0;
+      }
+    }
+    const lines = countCompleteLines(grid);
+    el.status.textContent = lines? `${lines} línea${lines>1?'s':''} completa${lines>1?'s':''}` : 'Sin líneas.';
+    if(lines>0){
+      el.lineCount.textContent = String(lines);
+      el.plural.textContent = lines>1? 's':'';
+      el.bingoMessage.style.display = '';
+    } else {
+      el.bingoMessage.style.display = 'none';
+    }
+  }
+
+  function countCompleteLines(g){
+    const n = g.length; let count = 0;
+    // filas
+    for(let r=0;r<n;r++) if(g[r].every(v=>v===1)) count++;
+    // columnas
+    for(let c=0;c<n;c++){
+      let ok = true; for(let r=0;r<n;r++){ if(g[r][c]!==1){ ok=false; break; } }
+      if(ok) count++;
+    }
+    // diagonales
+    let ok1=true, ok2=true;
+    for(let i=0;i<n;i++){ if(g[i][i]!==1) ok1=false; if(g[i][n-1-i]!==1) ok2=false; }
+    if(ok1) count++; if(ok2) count++;
+    return count;
+  }
+
+  // ————— Eventos UI —————
+  el.gen.addEventListener('click', () => buildBoard());
+  el.shuffle.addEventListener('click', () => { el.playerName.value = ''; buildBoard(); });
+  el.resetMarks.addEventListener('click', () => {
+    const btns = el.grid.querySelectorAll('.cell.marked');
+    btns.forEach(b=>{ b.classList.remove('marked'); b.setAttribute('aria-pressed','false'); });
+    updateStatus();
+  });
+  el.restoreDefaults.addEventListener('click', () => {
+    el.list.value = DEFAULTS.join('\n');
+  });
+  el.saveShare.addEventListener('click', () => {
+    const settings = { size: parseInt(el.size.value,10), free: el.free.checked, list: linesFromTextarea() };
+    setSettingsToURL(settings);
+  });
+  el.copyShare.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(el.teacherLink.value); toast('Enlace copiado ✔'); } catch(e){ toast('No se pudo copiar'); }
+  });
+  el.playerName.addEventListener('change', buildBoard);
+  el.size.addEventListener('change', () => { setSettingsToURL({ size:parseInt(el.size.value,10), free:el.free.checked, list: linesFromTextarea() }); buildBoard(); });
+  el.free.addEventListener('change', () => { setSettingsToURL({ size:parseInt(el.size.value,10), free:el.free.checked, list: linesFromTextarea() }); buildBoard(); });
+  el.list.addEventListener('change', () => { setSettingsToURL({ size:parseInt(el.size.value,10), free:el.free.checked, list: linesFromTextarea() }); buildBoard(); });
+
+  function linesFromTextarea(){
+    return el.list.value.split('\n').map(s=>s.trim()).filter(Boolean);
+  }
+
+  function toast(msg){
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.position='fixed'; t.style.left='50%'; t.style.bottom='18px'; t.style.transform='translateX(-50%)';
+    t.style.background='rgba(2,6,23,.9)'; t.style.border='1px solid rgba(148,163,184,.35)'; t.style.color='white';
+    t.style.padding='10px 14px'; t.style.borderRadius='12px'; t.style.boxShadow='var(--shadow)'; t.style.zIndex=9999;
+    document.body.appendChild(t); setTimeout(()=>t.remove(), 2000);
+  }
+
+  // ————— Inicialización —————
+  (function init(){
+    const s = getSettingsFromURL();
+    el.size.value = String(s.size);
+    el.free.checked = !!s.free;
+    el.list.value = s.list.join('\n');
+    setSettingsToURL(s);
+    buildBoard();
+  })();
+  </script>
+</body>
+</html>
